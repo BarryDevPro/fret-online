@@ -1,0 +1,425 @@
+<?php
+
+namespace App\Entity;
+
+use Doctrine\Common\Collections\ArrayCollection;
+use Doctrine\Common\Collections\Collection;
+use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
+use Symfony\Component\HttpFoundation\File\File;
+use Symfony\Component\HttpFoundation\File\UploadedFile;
+use Symfony\Component\Security\Core\User\UserInterface;
+use Symfony\Component\Validator\Constraints as Asset;
+use Vich\UploaderBundle\Mapping\Annotation as Vich;
+/**
+ * Abonnes
+ *
+ * @ORM\Table(name="abonnes")
+ * @ORM\Entity(repositoryClass="App\Repository\AbonnesRepository")
+ * @Vich\Uploadable()
+ * @UniqueEntity("ninea")
+ * @UniqueEntity("email")
+ * @UniqueEntity("telephone")
+ */
+class Abonnes implements UserInterface, \Serializable
+{
+    const TYPEAB = array(
+        1=>'Affreteur/Courtier',
+        2=>'Transporteur'
+    );
+    /**
+     * @var int
+     *
+     * @ORM\Column(name="id", type="integer", nullable=false)
+     * @ORM\Id
+     * @ORM\GeneratedValue(strategy="IDENTITY")
+     */
+    private $id;
+
+    /**
+     * @Asset\Regex("/^[' a-zA-Z]+$/")
+     * @var string
+     * @ORM\Column(name="nom", type="string", length=70, nullable=false)
+     */
+    private $nom;
+
+    /**
+     * @Asset\Regex("/^[0-9]{9}$/")
+     * @var string
+     *
+     * @ORM\Column(name="ninea", type="string", length=100, nullable=false)
+     */
+    private $ninea;
+
+    /**
+     * @Asset\Regex("/^[0-9]{9}$/")
+     * @var string
+     * @Asset\Length(min=5,max=10)
+     * @ORM\Column(name="telephone", type="string", length=25, nullable=true)
+     */
+    private $telephone;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="email", type="string", length=100, nullable=false)
+     */
+    private $email;
+    /**
+     * @var File|null
+     * @Vich\UploadableField( mapping="abonnes_profil",fileNameProperty="file")
+     */
+    private $imageProfil;
+    /**
+     * @var string|null
+     *
+     * @ORM\Column(name="file", type="string", length=100, nullable=true)
+     */
+    private $file;
+
+    /**
+     * @var string
+     *
+     * @ORM\Column(name="password", type="string", length=200, nullable=false)
+     */
+    private $password;
+
+    /**
+     * @var int
+     * @ORM\Column(type="integer")
+     */
+    private $typeAbonne;
+
+    /**
+     * @ORM\Column(type="datetime")
+     */
+    private $created_at;
+
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $Prenom;
+
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\Entreprise", inversedBy="abonnes")
+     */
+    private $id_entreprise;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Messages", mappedBy="id_Abonne")
+     */
+    private $ListeMessage;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Vehicule", mappedBy="idAbonne")
+     */
+    private $listeVehicule;
+
+    public function __construct()
+    {
+        $this->ListeMessage = new ArrayCollection();
+        $this->listeVehicule = new ArrayCollection();
+    }
+
+
+    public function getId(): ?int
+    {
+        return $this->id;
+    }
+
+    public function getNom(): ?string
+    {
+        return $this->nom;
+    }
+
+    public function setNom(string $nom): self
+    {
+        $this->nom = $nom;
+
+        return $this;
+    }
+
+    public function getNinea(): ?string
+    {
+        return $this->ninea;
+    }
+
+    public function setNinea(?string $ninea): self
+    {
+        $this->ninea = $ninea;
+
+        return $this;
+    }
+
+    public function getTelephone(): ?string
+    {
+        return $this->telephone;
+    }
+
+    public function setTelephone(?string $telephone): self
+    {
+        $this->telephone = $telephone;
+
+        return $this;
+    }
+
+    public function getEmail(): ?string
+    {
+        return $this->email;
+    }
+
+    public function setEmail(?string $email): self
+    {
+        $this->email = $email;
+
+        return $this;
+    }
+
+    public function getFile(): ?string
+    {
+        return $this->file;
+    }
+
+    public function setFile(?string $file): self
+    {
+        $this->file = $file;
+
+        return $this;
+    }
+
+    public function getPassword(): ?string
+    {
+        return $this->password;
+    }
+
+    public function setPassword(?string $password): self
+    {
+        $this->password = $password;
+
+        return $this;
+    }
+
+    public function getTypeAbonneValue():string
+    {
+        return self::TYPEAB[$this->getTypeAbonne()];
+    }
+
+    /**
+     * Returns the roles granted to the user.
+     *
+     *     public function getRoles()
+     *     {
+     *         return ['ROLE_USER'];
+     *     }
+     *
+     * Alternatively, the roles might be stored on a ``roles`` property,
+     * and populated in any number of different ways when the user object
+     * is created.
+     *
+     * @return array (Role|string)[] The user roles
+     */
+    public function getRoles()
+    {
+        return ['ROLE_USER'];
+    }
+
+    /**
+     * Returns the salt that was originally used to encode the password.
+     *
+     * This can return null if the password was not encoded using a salt.
+     *
+     * @return string|null The salt
+     */
+    public function getSalt()
+    {
+        return null;
+    }
+
+    /**
+     * Returns the username used to authenticate the user.
+     *
+     * @return string The username
+     */
+    public function getUsername()
+    {
+        // TODO: Implement getUsername() method.
+    }
+
+    /**
+     * Removes sensitive data from the user.
+     *
+     * This is important if, at any given point, sensitive information like
+     * the plain-text password is stored on this object.
+     */
+    public function eraseCredentials()
+    {
+
+    }
+
+    /**
+     * String representation of object
+     * @link http://php.net/manual/en/serializable.serialize.php
+     * @return string the string representation of the object or null
+     * @since 5.1.0
+     */
+    public function serialize()
+    {
+        return serialize(
+            [
+                $this->id,
+                $this->email,
+                $this->password
+            ]
+        );
+    }
+
+    /**
+     * Constructs the object
+     * @link http://php.net/manual/en/serializable.unserialize.php
+     * @param string $serialized <p>
+     * The string representation of the object.
+     * </p>
+     * @return void
+     * @since 5.1.0
+     */
+    public function unserialize($serialized)
+    {
+        list(
+            $this->id,
+            $this->email,
+            $this->password
+            ) = unserialize($serialized, ['allowed_classes' => false]);
+    }
+
+    public function getTypeAbonne(): ?int
+    {
+        return $this->typeAbonne;
+    }
+
+    public function setTypeAbonne(int $typeAbonne): self
+    {
+        $this->typeAbonne = $typeAbonne;
+
+        return $this;
+    }
+
+    /**
+     * @return null|File
+     */
+    public function getImageProfil(): ?File
+    {
+        return $this->imageProfil;
+    }
+
+    /**
+     * @param null|File $imageProfil
+     */
+    public function setImageProfil(?File $imageProfil): void
+    {
+        $this->imageProfil = $imageProfil;
+        if ($this->imageProfil instanceof UploadedFile)
+        {
+            $this->created_at = new \DateTime('now');
+        }
+        $this->created_at = new \DateTime('now');
+    }
+
+    public function getCreatedAt(): ?\DateTimeInterface
+    {
+        return $this->created_at;
+    }
+
+    public function setCreatedAt(\DateTimeInterface $created_at): self
+    {
+        $this->created_at = $created_at;
+
+        return $this;
+    }
+
+    public function getPrenom(): ?string
+    {
+        return $this->Prenom;
+    }
+
+    public function setPrenom(string $Prenom): self
+    {
+        $this->Prenom = $Prenom;
+
+        return $this;
+    }
+
+    public function getIdEntreprise(): ?Entreprise
+    {
+        return $this->id_entreprise;
+    }
+
+    public function setIdEntreprise(?Entreprise $id_entreprise): self
+    {
+        $this->id_entreprise = $id_entreprise;
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Messages[]
+     */
+    public function getListeMessage(): Collection
+    {
+        return $this->ListeMessage;
+    }
+
+    public function addListeMessage(Messages $listeMessage): self
+    {
+        if (!$this->ListeMessage->contains($listeMessage)) {
+            $this->ListeMessage[] = $listeMessage;
+            $listeMessage->setIdAbonne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeListeMessage(Messages $listeMessage): self
+    {
+        if ($this->ListeMessage->contains($listeMessage)) {
+            $this->ListeMessage->removeElement($listeMessage);
+            // set the owning side to null (unless already changed)
+            if ($listeMessage->getIdAbonne() === $this) {
+                $listeMessage->setIdAbonne(null);
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * @return Collection|Vehicule[]
+     */
+    public function getListeVehicule(): Collection
+    {
+        return $this->listeVehicule;
+    }
+
+    public function addListeVehicule(Vehicule $listeVehicule): self
+    {
+        if (!$this->listeVehicule->contains($listeVehicule)) {
+            $this->listeVehicule[] = $listeVehicule;
+            $listeVehicule->setIdAbonne($this);
+        }
+
+        return $this;
+    }
+
+    public function removeListeVehicule(Vehicule $listeVehicule): self
+    {
+        if ($this->listeVehicule->contains($listeVehicule)) {
+            $this->listeVehicule->removeElement($listeVehicule);
+            // set the owning side to null (unless already changed)
+            if ($listeVehicule->getIdAbonne() === $this) {
+                $listeVehicule->setIdAbonne(null);
+            }
+        }
+
+        return $this;
+    }
+
+}

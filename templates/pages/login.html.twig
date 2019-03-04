@@ -1,0 +1,16 @@
+{% extends 'base.html.twig' %}
+{% block title 'Login' %}
+{% block slider '' %}
+    {% block body %}
+        <div class="container mt-4 ">
+            <div class="card col-md-10">
+                <div class="card-header"></div>
+                <div class="card-body">
+                    {{ form_start(login) }}
+                    {{ form_widget(login)}}
+                    <button type="submit" class="btn btn-primary btn-labeled pull-right">Sign in<span class="btn-label btn-label-right"><i class="fa fa-check"></i></span></button>
+                    {{ form_end(login) }}
+                </div>
+            </div>
+        </div>
+    {% endblock %}
